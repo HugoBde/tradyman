@@ -7,6 +7,12 @@ pub struct RingBuffer<const N: usize> {
   count:  usize,
 }
 
+impl<const N: usize> Default for RingBuffer<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> RingBuffer<N> {
   pub fn new() -> RingBuffer<N> {
     RingBuffer::<N> {

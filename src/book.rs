@@ -12,6 +12,12 @@ pub struct Book {
   sell_side: BTreeMap<Price, Volume>,
 }
 
+impl Default for Book {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Book {
   pub fn new() -> Book {
     Book {
@@ -59,11 +65,11 @@ impl Display for Book {
         entry.0.0,
         entry.1.0,
         color::Fg(color::Red),
-        &BAR[..(BAR.len() * entry.1.0 + max_volume - 1) / max_volume],
+        &BAR[..(BAR.len() * entry.1.0).div_ceil(max_volume)],
         color::Fg(color::Reset),
       )?
     }
-    writeln!(f, "")?;
+    writeln!(f)?;
     for entry in self.buy_side.iter().rev().take(n) {
       writeln!(
         f,
@@ -71,7 +77,7 @@ impl Display for Book {
         entry.0.0,
         entry.1.0,
         color::Fg(color::Green),
-        &BAR[..(BAR.len() * entry.1.0 + max_volume - 1) / max_volume],
+        &BAR[..(BAR.len() * entry.1.0).div_ceil(max_volume)],
         color::Fg(color::Reset),
       )?
     }
