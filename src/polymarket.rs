@@ -15,12 +15,15 @@ use tungstenite::{
 };
 
 use crate::book::Book;
+use crate::ringbuffer::RingBuffer;
 use crate::types::{Price, Volume};
 
 pub struct PolymarketClient {
-  token_id: String,
-  book:     Book,
-  ws:       WebSocket<MaybeTlsStream<TcpStream>>,
+  token_id:              String,
+  book:                  Book,
+  ws:                    WebSocket<MaybeTlsStream<TcpStream>>,
+  latency_ringbuffer:    RingBuffer<32>,
+  throughput_ringbuffer: RingBuffer<32>,
 }
 
 impl PolymarketClient {
@@ -51,15 +54,31 @@ impl PolymarketClient {
       }
     }
 
-    Ok(PolymarketClient { token_id, book, ws })
+    Ok(PolymarketClient {
+      token_id,
+      book,
+      ws,
+      latency_ringbuffer: RingBuffer::new(),
+      throughput_ringbuffer: RingBuffer::new(),
+    })
   }
 
-  pub fn run(&mut self, n: usize) -> Result<(), WebSocketError> {
-    for _ in 0..n {
+  pub fn run(&mut self) -> Result<(), WebSocketError> {
+    loop {
       match self.ws.read()? {
         WebSocketMessage::Text(t) => {
           let msg: Message = serde_json::from_str(t.as_str()).unwrap();
-          if let Message::PriceChange { price_changes, .. } = msg {
+          if let Message::PriceChange {
+            price_changes,
+            timestamp,
+          } = msg
+          {
+            let latency = SystemTime::now()
+              .duration_since(timestamp)
+              .unwrap()
+              .as_millis() as usize;
+
+            self.latency_ringbuffer.push(latency);
             for price_change in price_changes {
               if price_change.asset_id == self.token_id {
                 self
@@ -69,8 +88,12 @@ impl PolymarketClient {
             }
           }
           println!("{}{}", termion::clear::All, self.book);
+          println!("{}", self.latency_ringbuffer.average());
         }
-        _ => eprintln!("=> got something other than text"),
+        _ => {
+          eprintln!("=> got something other than text");
+          break;
+        }
       };
     }
 

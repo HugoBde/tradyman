@@ -9,7 +9,7 @@ fn main() -> Result<(), WebSocketError> {
   );
   let mut client = PolymarketClient::new(token).unwrap();
 
-  client.run(10_000)?;
+  client.run()?;
 
   Ok(())
 }

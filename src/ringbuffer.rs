@@ -4,13 +4,12 @@ pub struct RingBuffer<const N: usize> {
   data:   [usize; N],
   cursor: usize,
   sum:    usize,
-  count:  usize,
 }
 
 impl<const N: usize> Default for RingBuffer<N> {
-    fn default() -> Self {
-        Self::new()
-    }
+  fn default() -> Self {
+    Self::new()
+  }
 }
 
 impl<const N: usize> RingBuffer<N> {
@@ -19,7 +18,6 @@ impl<const N: usize> RingBuffer<N> {
       data:   [0; N],
       cursor: 0,
       sum:    0,
-      count:  0,
     }
   }
 
@@ -28,11 +26,10 @@ impl<const N: usize> RingBuffer<N> {
     self.sum += val;
     self.data[self.cursor] = val;
     self.cursor = (self.cursor + 1) % N;
-    self.count = std::cmp::min(N, self.count + 1);
   }
 
   pub fn average(&self) -> usize {
-    self.sum.checked_div(self.count).unwrap_or(0)
+    self.sum / N
   }
 }
 

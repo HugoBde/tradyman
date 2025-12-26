@@ -13,9 +13,9 @@ pub struct Book {
 }
 
 impl Default for Book {
-    fn default() -> Self {
-        Self::new()
-    }
+  fn default() -> Self {
+    Self::new()
+  }
 }
 
 impl Book {
@@ -27,19 +27,18 @@ impl Book {
   }
 
   pub fn set(&mut self, side: Side, price: Price, volume: Volume) {
-    match side {
-      Side::Buy => self.buy_side.insert(price, volume),
-      Side::Sell => self.sell_side.insert(price, volume),
+    let side = match side {
+      Side::Buy => &mut self.buy_side,
+      Side::Sell => &mut self.sell_side,
     };
+
+    if volume.0 == 0 {
+      side.remove(&price);
+    } else {
+      side.insert(price, volume);
+    }
   }
 }
-
-// let latency = SystemTime::now()
-//   .duration_since(*timestamp)
-//   .unwrap()
-//   .as_millis() as usize;
-//
-// self.latency_ringbuf.push(latency);
 
 const BAR: &str = "############################################################";
 
