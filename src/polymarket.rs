@@ -224,16 +224,3 @@ impl<'msg> Display for PriceChange<'msg> {
     }
   }
 }
-
-impl Display for Side {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(
-      f,
-      "{}",
-      match self {
-        Self::Buy => "BUY",
-        Self::Sell => "SELL",
-      }
-    )
-  }
-}
