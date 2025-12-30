@@ -37,7 +37,7 @@ impl<const N: usize> Display for RingBuffer<N> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "[")?;
     for i in 0..N {
-      write!(f, "{:<4}", self.data[i])?;
+      write!(f, "{:<4} ", self.data[i])?;
     }
     writeln!(f, "]")
   }

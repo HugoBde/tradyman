@@ -23,14 +23,29 @@ impl Ord for Price {
 
 impl Eq for Price {}
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, PartialOrd)]
 #[serde(try_from = "&str")]
-pub struct Volume(pub usize);
+pub struct Volume(pub f64);
 
 impl TryFrom<&str> for Volume {
   type Error = ParseFloatError;
 
   fn try_from(value: &str) -> Result<Self, Self::Error> {
-    Ok(Volume(f64::from_str(value)? as usize))
+    Ok(Volume(f64::from_str(value)?))
   }
+}
+
+impl Ord for Volume {
+  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    self.0.partial_cmp(&other.0).unwrap()
+  }
+}
+
+impl Eq for Volume {}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Side {
+  Buy,
+  Sell,
 }

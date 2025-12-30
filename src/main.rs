@@ -1,15 +1,52 @@
-use std::env::args;
+use std::time;
+use std::{env::args, time::UNIX_EPOCH};
 
+use anyhow::Result;
+use serde::Deserialize;
 use tradyman::polymarket::PolymarketClient;
-use tungstenite::Error as WebSocketError;
 
-fn main() -> Result<(), WebSocketError> {
-  let token = args().nth(1).unwrap_or(
-    "54533043819946592547517511176940999955633860128497669742211153063842200957669".to_string(),
-  );
-  let mut client = PolymarketClient::new(token).unwrap();
+fn main() -> Result<()> {
+  let market = args().nth(1).unwrap_or("btc-updown-15m".to_string());
+
+  let unix_timestamp = time::SystemTime::now()
+    .duration_since(UNIX_EPOCH)?
+    .as_secs();
+  let unix_timestamp = unix_timestamp - unix_timestamp % 900 + 1800;
+
+  let url = format!("https://gamma-api.polymarket.com/events/slug/{market}-{unix_timestamp}");
+  // println!("{url}");
+
+  let event_info: PolymarketEventInfo = reqwest::blocking::get(url)?.json()?;
+
+  // println!("{event_info}");
+
+  let token_id = event_info.markets[0]
+    .clob_token_ids
+    .split("\"")
+    .nth(1)
+    .unwrap()
+    .to_string();
+
+  println!("{token_id}");
+
+  let mut client = PolymarketClient::new(token_id)?;
 
   client.run()?;
 
   Ok(())
 }
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PolymarketEventInfo {
+  markets: Vec<PolymarketMarketInfo>,
+}
+
+#[derive(Deserialize)]
+struct PolymarketMarketInfo {
+  #[serde(rename = "clobTokenIds")]
+  clob_token_ids: String,
+}
+
+// fn get_token_id() -> String {
+// }
